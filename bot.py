@@ -1,4 +1,4 @@
-import os
+
 import logging
 import pytz
 from datetime import datetime, time
