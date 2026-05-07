@@ -8,22 +8,31 @@ from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, Defau
 # 1. التوقيت المصري الصارم (القاهرة)
 MY_TZ = pytz.timezone('Africa/Cairo')
 
-# 2. قائمة الـ 17 جروب المعتمدة (القديم + الـ 4 الجدد)
+# 2. قائمة الـ IDs المعتمدة
 GROUP_IDS = [
-    -1003870414631, -1003868568456, -1003843038200, -1003842260078,
-    -1003773422592, -1003309198838, -1003544491812, -1003715228581,
-    -1003304815564, -1003835237780, -1003851844806, -1003863374316,
-    -1003843038200,
-    -1003877292835, -1003747835947, -1003793666083, -1003705337445
+    -1003738377239
 ]
 
 TOKEN = "8685861366:AAFKP3Nm1RG8wVx4k0aQf1KKEneCXf22ja8"
+
+# مخزن لمنع التكرار (Global Dictionary)
+last_action_cache = {}
 
 logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', level=logging.INFO)
 
 # ---------------- وظيفة التنفيذ القهرية (تطبيق الصلاحيات) ----------------
 
 async def apply_status(bot, chat_id, action):
+    now = datetime.now(MY_TZ)
+    
+    # --- نظام مانع التكرار الصارم ---
+    cache_key = f"{chat_id}_{action}"
+    if cache_key in last_action_cache:
+        diff = (now - last_action_cache[cache_key]).total_seconds()
+        if diff < 30:  # لو اتكرر في أقل من 30 ثانية ارفض التكرار
+            logging.info(f"🛡️ Anti-Duplicate Blocked: {action} on {chat_id} (Diff: {diff}s)")
+            return False
+    
     is_open = (action == "open")
     if is_open:
         perms = ChatPermissions(
@@ -32,14 +41,18 @@ async def apply_status(bot, chat_id, action):
             can_send_other_messages=False, can_add_web_page_previews=False,
             can_send_polls=False, can_send_voice_notes=False, can_send_audios=False
         )
-        alert_msg = "أمر عسكري 🪖:\n\"🫡تم فتح الجروب حالاً\""
+        alert_msg = "\"🫡تم فتح الجروب حالاً\""
     else:
         perms = ChatPermissions(can_send_messages=False)
-        alert_msg = "أمر عسكري 🪖:\n\"🫡تم اغلاق الجروب تماماً\""
+        alert_msg = "\"🫡تم اغلاق الجروب تماماً\""
     
     try:
         await bot.set_chat_permissions(chat_id=int(chat_id), permissions=perms)
         await bot.send_message(chat_id=int(chat_id), text=alert_msg)
+        
+        # تحديث وقت آخر عملية ناجحة
+        last_action_cache[cache_key] = now
+        
         logging.info(f"✅ ACTION SUCCESS: {action} on {chat_id}")
         return True
     except Exception as e:
@@ -56,12 +69,7 @@ async def job_trigger(context: ContextTypes.DEFAULT_TYPE):
             logging.info(f"⏸️ Holiday Skip: {chat_id}")
             return
     
-    # تنفيذ الأمر وإرسال الرسالة
-    success = await apply_status(context.bot, chat_id, action)
-    
-    # "مانع التكرار" - لو نجح الإرسال بنخلي البوت ياخد هدنة دقيقة عشان ميكررش لنفس الميعاد
-    if success:
-        await asyncio.sleep(60)
+    await apply_status(context.bot, chat_id, action)
 
 # ---------------- أوامر التحكم (أدمن فقط) ----------------
 
@@ -104,15 +112,20 @@ async def close_now(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # ---------------- تشغيل السيستم المركزي ----------------
 
 def main():
-    # ضبط التوقيت الافتراضي للسيستم بالكامل
     bot_defaults = Defaults(tzinfo=MY_TZ)
     app = ApplicationBuilder().token(TOKEN).defaults(bot_defaults).build()
     
     jq = app.job_queue
     for gid in GROUP_IDS:
-        # تعديل المواعيد حسب طلبك الصارم (6 لـ 6:15 صباحاً) و (20 لـ 21 مساءً)
+        # المواعيد الجديدة المطلوبة:
+        # 4:30 ص - 5:00 ص
+        # 7:30 ص - 8:00 ص
+        # 14:30 - 15:00
+        # 20:00 - 21:00
         daily_schedule = [
-            ((6,0), "open"), ((6,15), "close"), 
+            ((4,30), "open"), ((5,0), "close"), 
+            ((7,30), "open"), ((8,0), "close"),
+            ((14,30), "open"), ((15,0), "close"),
             ((20,0), "open"), ((21,0), "close")
         ]
         for t, act in daily_schedule:
@@ -122,8 +135,7 @@ def main():
     app.add_handler(CommandHandler("close_now", close_now))
     app.add_handler(CommandHandler("addtime", addtime))
     
-    print(f"🚀 نظام التحكم ({len(GROUP_IDS)} IDs) يعمل بنبض القاهرة.. مانع التكرار نشط 200%.")
-    # drop_pending_updates=True تمنع انفجار الرسايل عند إعادة التشغيل
+    print(f"🚀 نظام التحكم ({len(GROUP_IDS)} IDs) يعمل بنبض القاهرة.. نظام القفل الذكي نشط.")
     app.run_polling(drop_pending_updates=True)
 
 if __name__ == "__main__":
