@@ -1,5 +1,4 @@
 
-import os
 import logging
 import pytz
 from datetime import datetime, time
@@ -9,7 +8,8 @@ from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, Defau
 # 1. الإعدادات
 MY_TZ = pytz.timezone('Africa/Cairo')
 GROUP_IDS = [-1003738377239]
-TOKEN = os.getenv("TOKEN") 
+# حطينا التوكن الجديد هنا يدوي عشان يقرأه فوراً
+TOKEN = "8685861366:AAGmGYGu92tHgKb13QEsaScpMw8_WNJXqjA"
 
 logging.basicConfig(format='%(asctime)s - %(levelname)s - %(message)s', level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -54,7 +54,7 @@ def main():
         for (hr, mn), act in schedule:
             app.job_queue.run_daily(job_trigger, time=time(hour=hr, minute=mn, tzinfo=MY_TZ), data=(gid, act))
 
-    logger.info("🚀 System Online with Commands")
+    logger.info("🚀 System Online with NEW TOKEN")
     app.run_polling(drop_pending_updates=True)
 
 if __name__ == "__main__":
