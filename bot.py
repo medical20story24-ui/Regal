@@ -13,7 +13,8 @@ GROUP_IDS = [
     -1003738377239
 ]
 
-TOKEN = "8685861366:AAFKP3Nm1RG8wVx4k0aQf1KKEneCXf22ja8"
+# التوكن الجديد اللي لسه مطلعه حالاً
+TOKEN = "8685861366:AAFMqnVQDV4UFlXX3z6HVgsHX53H-YsT_ec"
 
 # مخزن لمنع التكرار (Global Dictionary)
 last_action_cache = {}
@@ -41,10 +42,10 @@ async def apply_status(bot, chat_id, action):
             can_send_other_messages=False, can_add_web_page_previews=False,
             can_send_polls=False, can_send_voice_notes=False, can_send_audios=False
         )
-        alert_msg = "\"🫡تم فتح الجروب حالاً\""
+        alert_msg = "🫡 تم فتح الجروب حالاً"
     else:
         perms = ChatPermissions(can_send_messages=False)
-        alert_msg = "\"🫡تم اغلاق الجروب تماماً\""
+        alert_msg = "🫡 تم اغلاق الجروب تماماً"
     
     try:
         await bot.set_chat_permissions(chat_id=int(chat_id), permissions=perms)
@@ -102,7 +103,7 @@ async def addtime(update: Update, context: ContextTypes.DEFAULT_TYPE):
         
         if t_open_dt <= now_eg:
             await apply_status(context.bot, update.effective_chat.id, "open")
-            msg = "🔓 الميعاد حان فعلاً: تم كسر القفل والفتح فوراً."
+            msg = "🔓 الميعاد حان فعلاً: تم فتح الجروب فوراً."
         else:
             context.job_queue.run_once(job_trigger, when=t_open_dt, data=(update.effective_chat.id, "open", False))
             msg = f"✅ ميعاد الفتح القادم: {context.args[0]}"
@@ -126,11 +127,6 @@ def main():
     
     jq = app.job_queue
     for gid in GROUP_IDS:
-        # المواعيد المطلوبة:
-        # 1. 4:30 ص - 5:00 ص (تعمل الثلاثاء)
-        # 2. 7:30 ص - 8:00 ص (تعمل الثلاثاء)
-        # 3. 14:30 - 15:00 (إجازة الثلاثاء)
-        # 4. 20:00 - 21:00 (إجازة الثلاثاء)
         daily_schedule = [
             ((4,30), "open"), ((5,0), "close"), 
             ((7,30), "open"), ((8,0), "close"),
