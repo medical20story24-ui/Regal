@@ -65,7 +65,16 @@ async def job_trigger(context: ContextTypes.DEFAULT_TYPE):
     chat_id, action, is_fixed = context.job.data
     if is_fixed:
         now_egypt = datetime.now(MY_TZ)
-        if now_egypt.weekday() in [1, 4]: 
+        day_of_week = now_egypt.weekday() # 1 = الثلاثاء، 4 = الجمعة
+        
+        # استثناء يوم الثلاثاء لأول فترتين فقط (قبل الساعة 9 صباحاً)
+        is_early_morning = now_egypt.hour < 9
+        
+        if day_of_week == 1 and is_early_morning:
+            # تنفيذ الأمر بشكل طبيعي يوم الثلاثاء في الصباح
+            logging.info(f"🔓 Tuesday Morning Exception: Executing {action} on {chat_id}")
+        elif day_of_week in [1, 4]: 
+            # باقي حالات الثلاثاء والجمعة إجازة
             logging.info(f"⏸️ Holiday Skip: {chat_id}")
             return
     
@@ -117,11 +126,11 @@ def main():
     
     jq = app.job_queue
     for gid in GROUP_IDS:
-        # المواعيد الجديدة المطلوبة:
-        # 4:30 ص - 5:00 ص
-        # 7:30 ص - 8:00 ص
-        # 14:30 - 15:00
-        # 20:00 - 21:00
+        # المواعيد المطلوبة:
+        # 1. 4:30 ص - 5:00 ص (تعمل الثلاثاء)
+        # 2. 7:30 ص - 8:00 ص (تعمل الثلاثاء)
+        # 3. 14:30 - 15:00 (إجازة الثلاثاء)
+        # 4. 20:00 - 21:00 (إجازة الثلاثاء)
         daily_schedule = [
             ((4,30), "open"), ((5,0), "close"), 
             ((7,30), "open"), ((8,0), "close"),
@@ -135,7 +144,7 @@ def main():
     app.add_handler(CommandHandler("close_now", close_now))
     app.add_handler(CommandHandler("addtime", addtime))
     
-    print(f"🚀 نظام التحكم ({len(GROUP_IDS)} IDs) يعمل بنبض القاهرة.. نظام القفل الذكي نشط.")
+    print(f"🚀 نظام التحكم ({len(GROUP_IDS)} IDs) يعمل بنبض القاهرة.. استثناء صباح الثلاثاء نشط.")
     app.run_polling(drop_pending_updates=True)
 
 if __name__ == "__main__":
