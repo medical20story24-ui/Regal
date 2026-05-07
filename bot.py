@@ -1,4 +1,4 @@
-import os
+
 import logging
 import pytz
 from datetime import datetime, time
@@ -8,7 +8,7 @@ from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, Defau
 # 1. الإعدادات الأساسية
 MY_TZ = pytz.timezone('Africa/Cairo')
 GROUP_IDS = [-1003738377239]
-TOKEN = os.getenv("MY_BOT_TOKEN")
+TOKEN = "8685861366:AAGmGYGu92tHgKb13QEsaScpMw8_WNJXqjA"
 
 # إعداد اللوجر
 logging.basicConfig(format='%(asctime)s - %(name)s - %(levelname)s - %(message)s', level=logging.INFO)
