@@ -1,3 +1,4 @@
+import os
 import logging
 import pytz
 import asyncio
@@ -10,8 +11,7 @@ MY_TZ = pytz.timezone('Africa/Cairo')
 
 # 2. الهوية الرقمية
 GROUP_IDS = [-1003738377239]
-TOKEN = "8685861366:AAFMqnVQDV4UFlXX3z6HVgsHX53H-YsT_ec"
-
+TOKEN = os.environ.get("TOKEN")
 # كاش لمنع التكرار المزعج
 last_action_cache = {}
 
