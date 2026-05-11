@@ -7,7 +7,7 @@ from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, Defau
 
 # 1. الإعدادات الأساسية
 MY_TZ = pytz.timezone('Africa/Cairo')
-GROUP_IDS = [-1003738377239]
+GROUP_IDS = [-1003738377239, -1003121062302, -1003952529188, -1003893444912, -1003953376550]
 TOKEN = "8685861366:AAGmGYGu92tHgKb13QEsaScpMw8_WNJXqjA"
 
 # مانع التكرار العالمي - بيضمن إن مفيش أمرين يتنفذوا في نفس اللحظة
@@ -102,3 +102,4 @@ def main():
 
 if __name__ == "__main__":
     main()
+
