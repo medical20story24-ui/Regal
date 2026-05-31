@@ -7,8 +7,8 @@ from telegram.ext import ApplicationBuilder, CommandHandler, ContextTypes, Defau
 
 # 1. الإعدادات الأساسية
 MY_TZ = pytz.timezone('Africa/Cairo')
-GROUP_IDS = [-1003738377239, -1003121062302, -1003952529188, -1003893444912, -1003953376550]
-TOKEN = "8685861366:AAGmGYGu92tHgKb13QEsaScpMw8_WNJXqjA"
+GROUP_IDS = [-1003738377239, -1003121062302, -1003952529188, -1003893444912, -1003953376550, -1003320530825]
+TOKEN = "8820852443:AAFjo-cKYBkFde057jP_d3af_FjurZChji8"
 
 # مانع التكرار العالمي - بيضمن إن مفيش أمرين يتنفذوا في نفس اللحظة
 EXECUTION_LOCK = asyncio.Lock()
@@ -60,18 +60,7 @@ async def close_now(update: Update, context: ContextTypes.DEFAULT_TYPE):
 # --- محرك المواعيد الذكي ---
 async def job_trigger(context: ContextTypes.DEFAULT_TYPE):
     chat_id, action, hr, mn = context.job.data
-    now_eg = datetime.now(MY_TZ)
-    weekday = now_eg.weekday() # 1=الثلاثاء، 4=الجمعة
-
-    # منطق الإجازات (أمن وطني)
-    if weekday == 4: # الجمعة: إجازة كاملة
-        return
-    
-    if weekday == 1: # الثلاثاء: أول فترتين فقط
-        allowed_times = [(4,30), (5,0), (7,30), (8,0)]
-        if (hr, mn) not in allowed_times:
-            return
-
+    # تم إزالة قيود الأيام والإجازات ليعمل البوت يومياً بشكل كامل
     await set_status(context.bot, chat_id, action)
 
 def main():
@@ -81,12 +70,15 @@ def main():
     app.add_handler(CommandHandler("open_now", open_now))
     app.add_handler(CommandHandler("close_now", close_now))
 
-    # الجدول الزمني الصارم
+    # الجدول الزمني الصارم الجديد (يومياً)
     schedule = [
-        ((4,30),"open"), ((5,0),"close"), 
-        ((7,30),"open"), ((8,0),"close"), 
-        ((14,30),"open"), ((15,0),"close"), 
-        ((20,0),"open"), ((21,0),"close")
+        ((4, 0), "open"), ((4, 30), "close"),      # 4:00 AM - 4:30 AM
+        ((5, 0), "open"), ((5, 30), "close"),      # 5:00 AM - 5:30 AM
+        ((8, 45), "open"), ((9, 0), "close"),      # 8:45 AM - 9:00 AM
+        ((9, 45), "open"), ((10, 0), "close"),     # 9:45 AM - 10:00 AM
+        ((12, 45), "open"), ((13, 0), "close"),    # 12:45 PM - 1:00 PM (الظهر)
+        ((19, 45), "open"), ((20, 0), "close"),    # 7:45 PM - 8:00 PM (المغرب)
+        ((20, 45), "open"), ((21, 0), "close")     # 8:45 PM - 9:00 PM
     ]
 
     for gid in GROUP_IDS:
@@ -102,4 +94,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
